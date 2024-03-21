@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch", // 配置名称，将会在启动配置的下拉菜单中显示
+            "type": "lldb", // 配置类型，不同编程语言不同,该项由CodeLLDB插件提供
+            "request": "launch", // 可以为launch（启动）或attach（附加） 
+            "program": "${workspaceFolder}/build/job_shop_scheduling",
+            "args": [], // 程序调试时传递给程序的命令行参数，一般设为空
+            "cwd": "${fileDirname}", // 调试程序时的工作目录，此为工作区文件夹；改成${fileDirname}可变为文件所在目录
+            "internalConsoleOptions": "neverOpen", // 如果不设为neverOpen，调试时会跳到“调试控制台”选项卡，你应该不需要对gdb/lldb手动输命令吧？
+        }
+    ]
+}

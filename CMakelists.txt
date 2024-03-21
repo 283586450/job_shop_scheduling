@@ -1,0 +1,190 @@
+cmake_minimum_required(VERSION 3.25)
+
+set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
+# set(CMAKE_C_COMPILER "/usr/local/opt/llvm/bin/clang")
+
+project(job_shop_scheduling
+        DESCRIPTION "Solve job shop scheduling problem with multi-algorithms"
+        HOMEPAGE_URL "https://github.com/283586450/example.git"
+        VERSION 0.1.0
+        LANGUAGES C CXX
+        )
+
+# 打印信息
+message("Cmake for project: ${PROJECT_NAME}")
+message("Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(ENV{MAKEFLAGS} "-j4") # Use 4 threads for make
+
+# 构建类型
+set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Release)
+
+# 编译选项-Debug
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -march=native")
+
+# 编译选项-Release
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native")
+
+# 添加外部头文件目录
+include_directories(
+    /usr/local/include
+    /usr/local/Cellar
+)
+
+# 添加第三方库<method 1>: 直接添加源文件
+# add_subdirectory(third_party/googletest)
+
+# 添加第三方库<method 2>: 设置CMAKE_PREFIX_PATH，使用find_package
+set(CMAKE_PREFIX_PATH
+    # /usr/local/Cellar/clp/1.17.9
+    # /usr/local/Cellar/or-tools/9.9
+    /Users/arthur/Opt/or-tools_v9.9
+    /usr/local/Cellar/boost/1.84.0_1
+    # /usr/local/Cellar/matplotplusplus/1.2.1
+    # /usr/local/Cellar/matplotplusplus/1.2.1/lib/cmake/Matplot++
+)
+
+# 添加第三方库<method 3>: 系统安装第三方库，然后使用find_package
+set(googletest_DIR "/usr/local/Cellar/googletest/1.14.0")
+
+# find_package(TBB CONFIG REQUIRED)
+find_package(ortools CONFIG REQUIRED)
+find_package(fmt REQUIRED) # 系统安装的fmt库
+find_package(GTest REQUIRED)
+find_package(Boost REQUIRED COMPONENTS graph)
+find_package(absl REQUIRED)
+# find_package(Matplot++ REQUIRED)
+# find_package(absl REQUIRED)
+# include(GoogleTest)
+
+# include_directories(${Boost_INCLUDE_DIRS})
+# include_directories(${MATPLOT_INCLUDE_DIRS})
+
+# # Apache Arrow package
+# find_package(Arrow REQUIRED)
+# find_package(ArrowDataset REQUIRED)
+# find_package(ArrowFlight REQUIRED)
+# find_package(ArrowFlightSql REQUIRED)
+# find_package(Parquet REQUIRED)
+# find_package(Gandiva REQUIRED)
+
+# 添加第三方库<method 4>: 使用FetchContent
+# include(FetchContent)
+# FetchContent_Declare(
+#   ortools
+#   GIT_REPOSITORY https://github.com/google/or-tools.git
+#   GIT_TAG v9.8
+# )
+# FetchContent_MakeAvailable(ortools) # 下载ortools
+
+# add executable target
+add_executable(${PROJECT_NAME}
+    src/main.cpp
+    )
+
+target_include_directories(${PROJECT_NAME}  # 添加头文件目录
+    PRIVATE     ${CMAKE_SOURCE_DIR}/include
+)
+
+target_sources(${PROJECT_NAME} # 添加源文件/头文件
+    PRIVATE     src/jobShopInstance.cpp
+    PRIVATE     src/jobShopScheduling.cpp
+    PRIVATE     src/algorithm.cpp
+
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ortools::ortools)
+target_link_libraries(${PROJECT_NAME} PRIVATE absl::flags_parse)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+
+# target_link_libraries(${PROJECT_NAME} PRIVATE Matplot++::matplot)
+# target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
+# target_link_libraries(${PROJECT_NAME} PRIVATE Arrow::arrow_shared)
+# target_link_libraries(${PROJECT_NAME} PRIVATE ArrowDataset::arrow_dataset_shared)
+# target_link_libraries(${PROJECT_NAME} PRIVATE ArrowFlight::arrow_flight_shared)
+# target_link_libraries(${PROJECT_NAME} PRIVATE ArrowFlightSql::arrow_flight_sql_shared)
+# target_link_libraries(${PROJECT_NAME} PRIVATE Parquet::parquet_shared)
+# target_link_libraries(${PROJECT_NAME} PRIVATE Gandiva::gandiva_shared)
+
+
+# Custom targets
+# usage: cmake ..
+add_custom_target(run
+    COMMAND ninja
+    COMMAND ./${PROJECT_NAME}
+    )
+
+add_custom_target(clean_all
+COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/build/*
+COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/build/.cmake
+COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/build/CMakeFiles
+COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/build/*
+COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/build/.ninja_*
+)
+
+
+# For Install
+# usage: cmake -DCMAKE_INSTALL_PREFIX=/usr/local
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/README.md" DESTINATION share/doc/program)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" DESTINATION share/doc/program)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CONTRIBUTORS.md" DESTINATION share/doc/program)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/AUTHORS.md" DESTINATION share/doc/program)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/doc/" DESTINATION share/doc/program)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/examples/" DESTINATION share/doc/program)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests/" DESTINATION share/doc/program)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/data/" DESTINATION share/doc/program)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake/" DESTINATION share/doc/program)
+
+
+# For testing
+include(CTest)
+enable_testing()
+
+# Test1: test demo
+add_executable(test_demo
+    test/test_demo.cpp
+    ) # 添加测试文件
+target_include_directories(test_demo
+    PRIVATE     ${CMAKE_SOURCE_DIR}/src
+    )
+target_link_libraries(test_demo PRIVATE
+    PRIVATE     GTest::Main # 链接库 google test
+    PRIVATE    ortools::ortools
+    )
+add_test(NAME Test_Demo COMMAND test_demo)
+
+# Test2: test jobShopInstance
+add_executable(test_jobShopInstance
+        test/test_jobShopInstance.cpp
+        src/jobShopInstance.cpp
+        ) # 添加测试文件
+target_include_directories(
+    test_jobShopInstance
+    PRIVATE     ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(test_jobShopInstance
+    PRIVATE         GTest::Main
+    ) # 链接库 google test
+add_test(NAME test_jobShopInstance COMMAND test_jobShopInstance)
+
+# Test2: test SolutionConstructor
+# add_executable(test_SolutionConstructor
+#         test/test_SolutionConstructor.cpp
+#         src/jobShopInstance.cpp
+#         src/solutionConsturctor.cpp
+#         ) # 添加测试文件
+# target_include_directories(
+#     test_SolutionConstructor
+#     PRIVATE     ${CMAKE_SOURCE_DIR}/include
+# )
+# target_link_libraries(test_SolutionConstructor
+#     PRIVATE         GTest::Main
+#     ) # 链接库 google test
+# add_test(NAME test_SolutionConstructor COMMAND test_arithmetic)
