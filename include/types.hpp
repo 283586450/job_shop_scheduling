@@ -11,9 +11,9 @@ using StepID     = unsigned int;
 using MachineID  = unsigned int;
 using TimeStamp  = unsigned int;
 using TimePeriod = unsigned int;
+using Fitness    = unsigned int;
 using TaskID     = std::pair<JobID, StepID>;
 using Chromosome = std::vector<unsigned int>;
-using Population = std::vector<Chromosome>;
 
 enum class TaskType
 {
@@ -33,8 +33,9 @@ inline std::string TaskTypeToString(TaskType taskType)
 struct Individual
 {
     Chromosome chromosome;
-    int        fitness;
+    Fitness    fitness;
 };
+using Population = std::vector<Individual>;
 
 
 

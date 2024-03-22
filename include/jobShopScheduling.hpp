@@ -1,6 +1,5 @@
 #pragma once
 
-#include "types.hpp"
 #include <memory>
 #include <shared_mutex>
 #include <vector>

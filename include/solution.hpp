@@ -59,9 +59,9 @@ struct Solution
     std::map<TaskID, std::shared_ptr<StepTask>>     step_tasks_;
     std::map<TaskID, std::shared_ptr<PMTask>>       pm_tasks_;
     std::map<int, std::vector<std::weak_ptr<Task>>> schedules_;
-    std::unique_ptr<DisjunctiveGraph>               graph_  = nullptr;
-    std::unique_ptr<Chromosome>                     chromo_ = nullptr;
-    unsigned int                                    makespan;
+    std::unique_ptr<DisjunctiveGraph>               graph_ = nullptr;
+    Chromosome                                      chromo_;
+    Fitness                                         makespan;
 
     void update_makespan()
     {

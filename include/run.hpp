@@ -5,13 +5,10 @@
 #include "solution.hpp"
 #include "solutionConstructor.hpp"
 
-
-
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <vector>
-
 
 namespace scheduling {
 
@@ -33,7 +30,6 @@ public:
         // global_best_.print();
         add_ga_algorithm(3);
 
-
         std::vector<std::thread> threads;
         threads.reserve(algorithms_.size());
         for (int i = 0; i < algorithms_.size(); i++) {
@@ -52,24 +48,23 @@ public:
     {
         int num_thread = num_threads_ / algorithms_.size();
         for (int i = 0; i < algorithms_.size(); i++) {
-            algorithm_threads.push_back(num_thread);
+            algorithm_threads_.push_back(num_thread);
         }
     }
 
-
     void add_ga_algorithm(int num_threads)
     {
-        auto ga = std::make_unique<GAAlgorithm>(num_threads, time_limit_, 100);
-        algorithms_.push_back(std::move(ga));
+        auto genatic_algorithm =
+            std::make_unique<GAAlgorithm>(num_threads, time_limit_, 100);
+        algorithms_.push_back(std::move(genatic_algorithm));
     };
-
 
 private:
     JobShopInstance                         instance_;
     Solution                                gbest_;
     std::mutex                              gbest_mtx_;
     std::vector<std::unique_ptr<Algorithm>> algorithms_;
-    std::vector<int>                        algorithm_threads;
+    std::vector<int>                        algorithm_threads_;
     int                                     num_threads_;
     int                                     time_limit_;
 };

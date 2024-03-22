@@ -36,24 +36,23 @@ public:
     Algorithm& operator=(Algorithm&&) = delete;
 };
 
-
 class GAAlgorithm : public Algorithm
 {
 
 public:
     GAAlgorithm(int num_threads, int time_limit, int population_size = 100)
         : Algorithm(num_threads, time_limit)
-        , population_size(population_size){};
-
+        , population_size_(population_size){};
 
     static Individual encode(const Solution& solution);
-    static Chromosome encode(const JobShopInstance& instance);
+    static Individual encode(const JobShopInstance& instance);
     static Solution   decode(const Chromosome&      chromosome,
                              const JobShopInstance& instance);
-    static Chromosome tournament_selection(const Population& population);
-    static Chromosome crossover(const Chromosome& parent1,
-                                const Chromosome& parent2);
-    static void       mutation(Chromosome& chromosome);
+    static Individual tournament_selection(const Population& population);
+    static std::pair<Chromosome, Chromosome> crossover(
+        const Individual& parent1, const Individual& parent2);
+    static void mutation(Individual&            individual,
+                         const JobShopInstance& instance);
 
     void solve(const JobShopInstance& instance, Solution& global_best,
                std::mutex& gbest_mtx) override
@@ -65,28 +64,29 @@ public:
 
         std::cout << "Solution from GA \n";
         std::cout << "num threads: " << num_thread_
-                  << " Pop size: " << population_size << std::endl;
+                  << " Pop size: " << population_size_ << '\n';
 
         auto individual = encode(sol);
-        std::cout << "Individual fitness: " << individual.fitness << std::endl;
+        std::cout << "Individual fitness: " << individual.fitness << '\n';
         std::cout << "Individual chromosome: ";
         for (const auto& gene : individual.chromosome) {
             std::cout << gene << " ";
         }
-        std::cout << std::endl;
+        std::cout << '\n';
 
-
-        Chromosome chromosome = encode(instance);
+        auto new_indi = encode(instance);
         std::cout << "Chromosome from instance: ";
-        for (const auto& gene : chromosome) {
+        for (const auto& gene : new_indi.chromosome) {
             std::cout << gene << " ";
         }
-        std::cout << std::endl;
+        std::cout << '\n';
+
+        mutation(individual, instance);
     };
 
 private:
-    int                     population_size;
-    std::mutex              pbest_mtx;
+    int                     population_size_;
+    std::mutex              pbest_mtx_;
     std::vector<Individual> pbests_;
 };
 
