@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <thread>
 #include <vector>
 
@@ -23,25 +24,17 @@ public:
         SolutionConstructor constructor;
         constructor.convert_from_instance(instance);
         gbest_ = constructor.schedule();
+        std::cout << "Initial gbest fitness: " << gbest_.makespan << "\n";
     };
 
     void operator()()
     {
         // global_best_.print();
-        add_ga_algorithm(3);
-
-        std::vector<std::thread> threads;
-        threads.reserve(algorithms_.size());
-        for (int i = 0; i < algorithms_.size(); i++) {
-            threads.emplace_back(&Algorithm::solve,
-                                 algorithms_[i].get(),
-                                 std::ref(instance_),
-                                 std::ref(gbest_),
-                                 std::ref(gbest_mtx_));
+        add_ga_algorithm(num_threads_);
+        for (const auto& algorithm : algorithms_) {
+            algorithm->solve(instance_, gbest_, gbest_mtx_);
         }
-        for (auto& thread : threads) {
-            thread.join();
-        }
+        std::cout << "Final gbest fitness: " << gbest_.makespan << "\n";
     }
 
     void allocate_threads()
@@ -59,10 +52,16 @@ public:
         algorithms_.push_back(std::move(genatic_algorithm));
     };
 
+    void print_gbest()
+    {
+        std::shared_lock<std::shared_mutex> lock(gbest_mtx_);
+        gbest_.print();
+    };
+
 private:
     JobShopInstance                         instance_;
     Solution                                gbest_;
-    std::mutex                              gbest_mtx_;
+    std::shared_mutex                       gbest_mtx_;
     std::vector<std::unique_ptr<Algorithm>> algorithms_;
     std::vector<int>                        algorithm_threads_;
     int                                     num_threads_;

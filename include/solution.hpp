@@ -56,17 +56,17 @@ struct PMTask : public Task
 
 struct Solution
 {
-    std::map<TaskID, std::shared_ptr<StepTask>>     step_tasks_;
-    std::map<TaskID, std::shared_ptr<PMTask>>       pm_tasks_;
-    std::map<int, std::vector<std::weak_ptr<Task>>> schedules_;
-    std::unique_ptr<DisjunctiveGraph>               graph_ = nullptr;
-    Chromosome                                      chromo_;
-    Fitness                                         makespan;
+    std::map<TaskID, std::shared_ptr<StepTask>>           step_tasks;
+    std::map<TaskID, std::shared_ptr<PMTask>>             pm_tasks;
+    std::map<MachineID, std::vector<std::weak_ptr<Task>>> schedules;
+    DisjunctiveGraph                                      graph;
+    Chromosome                                            chromo;
+    Fitness                                               makespan = 0;
 
     void update_makespan()
     {
         makespan = 0;
-        for (const auto& [machine_id, tasks] : schedules_) {
+        for (const auto& [machine_id, tasks] : schedules) {
             for (const auto& task : tasks) {
                 auto locked_task = task.lock();
                 if (auto step_task =
@@ -88,7 +88,7 @@ struct Solution
     void print()
     {
         std::cout << "Solution: \n";
-        for (const auto& [machine_id, tasks] : schedules_) {
+        for (const auto& [machine_id, tasks] : schedules) {
             std::cout << "Machine " << machine_id << ": ";
             for (const auto& task : tasks) {
                 auto locked_task = task.lock();

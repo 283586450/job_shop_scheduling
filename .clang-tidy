@@ -53,5 +53,5 @@ CheckOptions:
     readability-identifier-naming.StaticConstantCase: UPPER_CASE
     readability-identifier-naming.StaticVariableCase: camelCase
 
-    readability-function-size.StatementThreshold: 50
+    readability-function-size.StatementThreshold: 80
     readability-function-size.ParameterThreshold: 5

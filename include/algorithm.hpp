@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <shared_mutex>
 #include <vector>
 
 #include "jobShopInstance.hpp"
@@ -29,7 +30,7 @@ public:
     {}
 
     virtual void solve(const JobShopInstance& instance, Solution& global_best,
-                       std::mutex& gbest_mtx) = 0;
+                       std::shared_mutex& gbest_mtx) = 0;
 
     // del move semantics
     Algorithm(Algorithm&&)            = delete;
@@ -53,40 +54,41 @@ public:
         const Individual& parent1, const Individual& parent2);
     static void mutation(Individual&            individual,
                          const JobShopInstance& instance);
-
-    void solve(const JobShopInstance& instance, Solution& global_best,
-               std::mutex& gbest_mtx) override
+    static void print_individual(const Individual& individual)
     {
-        SolutionConstructor constructor = SolutionConstructor();
-        constructor.convert_from_instance(instance);
-        auto sol = constructor.schedule();
-        sol.print();
-
-        std::cout << "Solution from GA \n";
-        std::cout << "num threads: " << num_thread_
-                  << " Pop size: " << population_size_ << '\n';
-
-        auto individual = encode(sol);
-        std::cout << "Individual fitness: " << individual.fitness << '\n';
-        std::cout << "Individual chromosome: ";
+        std::cout << "\n";
+        std::cout << "GAAlgorithm Individule: \n";
+        std::cout << "Fitness: " << individual.fitness << '\n';
+        std::cout << "Chromosome: ";
         for (const auto& gene : individual.chromosome) {
             std::cout << gene << " ";
         }
         std::cout << '\n';
-
-        auto new_indi = encode(instance);
-        std::cout << "Chromosome from instance: ";
-        for (const auto& gene : new_indi.chromosome) {
-            std::cout << gene << " ";
-        }
-        std::cout << '\n';
-
-        mutation(individual, instance);
     };
+
+    void solve(const JobShopInstance& instance, Solution& global_best,
+               std::shared_mutex& gbest_mtx) override;
+
+private:
+    static Fitness get_gbest_fitnesss(const Solution&    global_best,
+                                      std::shared_mutex& gbest_mtx);
+    static Fitness get_worst_pbest_fitness(
+        const std::vector<Individual>& pbests, std::shared_mutex& pbest_mtx);
+
+    static void update_gbest(const Individual&      individual,
+                             const JobShopInstance& instance,
+                             std::shared_mutex&     gbest_mtx,
+                             Solution&              global_best);
+    static void update_pbests(const Individual&        individual,
+                              std::shared_mutex&       pbest_mtx,
+                              std::vector<Individual>& pbests);
+    void        single_thread_ga(const JobShopInstance& instance,
+                                 Solution& global_best, std::shared_mutex& gbest_mtx,
+                                 std::atomic<bool>& stop);
 
 private:
     int                     population_size_;
-    std::mutex              pbest_mtx_;
+    std::shared_mutex       pbest_mtx_;
     std::vector<Individual> pbests_;
 };
 

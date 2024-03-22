@@ -153,9 +153,9 @@ public:
                          selected_step_obj.job_id,
                          selected_step_obj.step_id});
 
-            solution.step_tasks_[{selected_step_obj.job_id,
-                                  selected_step_obj.step_id}] = step_task;
-            solution.schedules_[selected_step_obj.machine_id].push_back(
+            solution.step_tasks[{selected_step_obj.job_id,
+                                 selected_step_obj.step_id}] = step_task;
+            solution.schedules[selected_step_obj.machine_id].push_back(
                 std::weak_ptr<Task>(step_task));
 
             total_steps -= 1;   // one step is scheduled
@@ -176,7 +176,7 @@ public:
         }
 
         solution.update_makespan();
-        
+
         return solution;
     };
 
